@@ -5,6 +5,12 @@ const { opSwitch } = require("./dbinit");
 const util = require("./util");
 
 const fildsBody = ["fio", "id", "birthday", "gender"];
+const headers = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+  "Access-Control-Max-Age": 2592000,
+  "Content-Type": "application/json",
+};
 
 const server = http.createServer((req, res) => {
   const urlParsed = url.parse(req.url, true);
@@ -16,13 +22,13 @@ const server = http.createServer((req, res) => {
   ) {
     opSwitch([parseInt(urlParsed.query.id)], "read")
       .then((el) => {
-        res.writeHead(200, { "Content-Type": "application/json" });
+        res.writeHead(200, headers);
         res.write(JSON.stringify(el.rows));
         res.end();
       })
       .catch((e) => {
-        res.statusCode("500");
-        res.sendDate(e);
+        res.statusCode("404");
+        console.log(e, "not found user");
         res.end();
       });
   } else if (urlParsed.pathname == "/user/" && req.method === "POST") {
@@ -41,8 +47,9 @@ const server = http.createServer((req, res) => {
     console.log("delete");
     opSwitch([parseInt(urlParsed.query.id)], "delete")
       .then((data) => {
-        console.log(data);
-        res.end("user delete" + urlParsed.query.id);
+        res.writeHead(200, headers);
+        res.write(JSON.stringify(data));
+        res.end();
       })
       .catch((e) => {
         console.log(e);
@@ -52,11 +59,10 @@ const server = http.createServer((req, res) => {
     url.parse(req.url).pathname == "/user/all" &&
     req.method === "GET"
   ) {
-    opSwitch([], "all")
+    opSwitch([], "all", urlParsed.query.page)
       .then((data) => {
-        console.log(data.rows);
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.write("<html><body><p>" + data + "</p></body></html>");
+        res.writeHead(200, headers);
+        res.write(JSON.stringify(data.rows));
         res.end();
       })
       .catch((err) => {
@@ -82,9 +88,9 @@ async function postProcessing(req, res, typeFunction) {
   req.on("end", function () {
     opSwitch(output[0], typeFunction, url.parse(req.url, true).query.id)
       .then((data) => {
-        console.log(data.rows);
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(`user ${typeFunction}`);
+        res.writeHead(200, headers);
+        res.write(JSON.stringify(data.rows));
+        res.end(JSON.stringify(data.rows));
       })
       .catch((e) => {
         console.log(e);

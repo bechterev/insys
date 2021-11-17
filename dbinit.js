@@ -74,7 +74,7 @@ const opSwitch = async (data, op, id) => {
     if (result.rowCount < 1) throw "user no found";
     return result;
   } else if (op == "all") {
-    return await transactQuery((data = [1]), querySearch[op]);
+    return await transactQuery((data = [id]), querySearch[op]);
   } else if (op == "search") {
     let values = Object.values(data);
     let fields = Object.keys(data);
